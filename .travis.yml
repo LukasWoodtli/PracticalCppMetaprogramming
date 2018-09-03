@@ -1,0 +1,38 @@
+dist: trusty
+
+install:
+# /usr/bin/gcc is 4.6 always, but gcc-X.Y is available.
+- if [ "$CXX" = "g++" ]; then export CXX="g++-7" CC="gcc-7"; fi
+# /usr/bin/clang is 3.4, lets override with modern one.
+- if [ "$CXX" = "clang++" ] && [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="clang++-5.0" CC="clang-5.0"; fi
+- echo ${PATH}
+- echo ${CXX}
+- ${CXX} --version
+- ${CXX} -v
+
+addons:
+  apt:
+    # List of whitelisted in travis packages for ubuntu-precise can be found here:
+    #   https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
+    # List of whitelisted in travis apt-sources:
+    #   https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
+    sources:
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-trusty-5.0
+    - boost-latest
+    packages:
+    - gcc-7
+    - g++-7
+    - clang-5.0
+
+language: cpp
+
+compiler:
+- clang
+- gcc
+os:
+- linux
+- osx
+
+script: bash -x ./.travis_build_and_test.sh
+
