@@ -1,4 +1,5 @@
-dist: trusty
+before_install:
+- if [ "$CXX" = "g++" ] && [ "$TRAVIS_OS_NAME" = "osx" ]; then rm '/usr/local/include/c++' && brew install brew install gcc@7 --without-multilib; fi
 
 install:
 # /usr/bin/gcc is 4.6 always, but gcc-X.Y is available.
