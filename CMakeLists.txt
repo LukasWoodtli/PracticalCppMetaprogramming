@@ -20,4 +20,5 @@ endif()
 enable_testing()
 
 add_subdirectory("1_Introduction")
+add_subdirectory("2_CppMetaprogrammingInPractice")
 
