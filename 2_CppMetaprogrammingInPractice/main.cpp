@@ -71,6 +71,24 @@ std::tuple<double, double, double, double> get_adjusted_values_3(
 
 
 
+// C functions params
+template <typename F>
+struct make_tuple_of_derefed_params;
+
+template <typename Ret, typename... Args>
+struct make_tuple_of_derefed_params<Ret (Args...)>
+{
+	using type = std::tuple<std::remove_pointer_t<Args>...>;
+//                                                         ^
+//                                                         Everythng left of the `...` operator is replicated for each type in `Args`
+};
+
+// convinience function
+template <typename F>
+using make_tuple_of_derefed_params_t = typename make_tuple_of_derefed_params<F>::type;
+
+
+
 int main() {
 	// ...
 
