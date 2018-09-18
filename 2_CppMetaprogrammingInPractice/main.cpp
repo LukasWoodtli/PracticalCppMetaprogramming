@@ -88,6 +88,17 @@ template <typename F>
 using make_tuple_of_derefed_params_t = typename make_tuple_of_derefed_params<F>::type;
 
 
+template <typename... Functions, typename... Params>
+void magic_wand(const std::tuple<Functions...>& f,
+	  	const std::tuple<Params...>& p1,
+	  	const std::tuple<Params...>& p2)
+{
+	(void)f;
+	(void)p1;
+	(void)p2;
+//	make_tuple_of_derefered_paramy<F> params;
+}
+
 
 int main() {
 	// ...
@@ -102,5 +113,12 @@ int main() {
 			[&r](location l, time_t t){ return r.beta_value(l, t); },
 			l, t1, t2);
 	(void)res;
+
+	const reading& rconst = r;
+	magic_wand(std::make_tuple(
+			[&rconst](location l, time_t t) { return rconst.alpha_value(l, t); },
+			[&rconst](location l, time_t t) { return rconst.beta_value(l, t); }),
+			std::make_tuple(l, t1),
+			std::make_tuple(l, t2));
 }
 
