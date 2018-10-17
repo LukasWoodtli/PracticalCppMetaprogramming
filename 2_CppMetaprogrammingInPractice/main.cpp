@@ -88,15 +88,63 @@ template <typename F>
 using make_tuple_of_derefed_params_t = typename make_tuple_of_derefed_params<F>::type;
 
 
-template <typename... Functions, typename... Params>
-void magic_wand(const std::tuple<Functions...>& f,
-	  	const std::tuple<Params...>& p1,
-	  	const std::tuple<Params...>& p2)
+template <std::size_t FunctionIndex,
+	 typename FunctionsTuple,
+	 typename Params,
+	 std::size_t... I>
+auto dispatch_params(FunctionsTuple & functions,
+		Params & params,
+		std::index_sequence<I...>)
 {
-	(void)f;
-	(void)p1;
-	(void)p2;
-//	make_tuple_of_derefered_paramy<F> params;
+	return (std::get<FunctionIndex>(functions))
+		(std::get<I>(params)...);
+}
+
+template <typename FunctionsTuple,
+	 std::size_t... I,
+	 typename Params,
+	 typename ParamsSeq>
+auto dispatch_functions(FunctionsTuple & functions,
+		std::index_sequence<I...>,
+		Params & params,
+		ParamsSeq params_seq)
+{
+	return std::make_tuple(dispatch_params<I>(functions,
+				params,
+				params_seq)...);
+}
+
+
+template <typename F, typename Tuple, std::size_t... I>
+void dispatch_to_c(F f, Tuple & t, std::index_sequence<I...>)
+{
+	f(&std::get<I>(t)...);
+}
+
+
+template <typename LegacyFunction, typename... Functions, typename... Params>
+auto magic_wand(LegacyFunction legacy,
+		const std::tuple<Functions...>& functions,
+	  	const std::tuple<Params...>& params1,
+	  	const std::tuple<Params...>& params2)
+{
+	static const std::size_t functions_count = sizeof...(Functions);
+	static const std::size_t params_count = sizeof...(Params);
+
+	auto params = std::tuple_cat(
+			dispatch_functions(functions,
+				std::make_index_sequence<functions_count>(),
+				params1,
+				std::make_index_sequence<params_count>()),
+			dispatch_functions(functions,
+				std::make_index_sequence<functions_count>(),
+				params2,
+				std::make_index_sequence<params_count>()));
+
+	static constexpr auto t_count = std::tuple_size<decltype(params)>::value;
+
+	dispatch_to_c(legacy, params, std::make_index_sequence<t_count>());
+	return params;
 }
 
 
@@ -115,7 +163,7 @@ int main() {
 	(void)res;
 
 	const reading& rconst = r;
-	magic_wand(std::make_tuple(
+	magic_wand(adjust_values, std::make_tuple(
 			[&rconst](location l, time_t t) { return rconst.alpha_value(l, t); },
 			[&rconst](location l, time_t t) { return rconst.beta_value(l, t); }),
 			std::make_tuple(l, t1),
